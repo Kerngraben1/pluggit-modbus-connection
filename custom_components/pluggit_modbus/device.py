@@ -1724,3 +1724,109 @@ class DanthermDevice(DanthermModbus, DanthermAdaptiveManager):
         return result
 
     async def async_get_air_quality_high_threshold(self) -> int | None:
+        """Get air quality high threshold."""
+
+        result = await self._read_holding_uint32(
+            MODBUS_REGISTER_AIR_QUALITY_HIGH_THRESHOLD
+        )
+        _LOGGER.debug("Air quality high threshold = %s", result)
+        return result
+
+    async def async_get_exhaust_temperature(self) -> float | None:
+        """Get exhaust temperature."""
+
+        result = await self._read_holding_float32(
+            MODBUS_REGISTER_EXHAUST_TEMP, precision=1
+        )
+        _LOGGER.debug("Exhaust temperature = %.1f", result)
+        if not self._sensor_filtering or result is None:
+            return result
+        return self._filter_sensor("exhaust", result)
+
+    async def async_get_extract_temperature(self) -> float | None:
+        """Get extract temperature."""
+
+        result = await self._read_holding_float32(
+            MODBUS_REGISTER_EXTRACT_TEMP, precision=1
+        )
+        _LOGGER.debug("Extract temperature = %.1f", result)
+        if not self._sensor_filtering or result is None:
+            return result
+        return self._filter_sensor("extract", result)
+
+    async def async_get_supply_temperature(self) -> float | None:
+        """Get supply temperature."""
+
+        result = await self._read_holding_float32(
+            MODBUS_REGISTER_SUPPLY_TEMP, precision=1
+        )
+        _LOGGER.debug("Supply temperature = %.1f", result)
+        if not self._sensor_filtering or result is None:
+            return result
+        return self._filter_sensor("supply", result)
+
+    async def async_get_outdoor_temperature(self) -> float | None:
+        """Get outdoor temperature."""
+
+        result = await self._read_holding_float32(
+            MODBUS_REGISTER_OUTDOOR_TEMP, precision=1
+        )
+        _LOGGER.debug("Outdoor temperature = %.1f", result)
+        if not self._sensor_filtering or result is None:
+            return result
+        return self._filter_sensor("outdoor", result)
+
+    async def async_get_room_temperature(self) -> float | None:
+        """Get room temperature."""
+
+        result = await self._read_holding_float32(
+            MODBUS_REGISTER_ROOM_TEMP, precision=1
+        )
+        _LOGGER.debug("Room temperature = %.1f", result)
+        if not self._sensor_filtering or result is None:
+            return result
+        return self._filter_sensor("room", result)
+
+    async def async_get_adaptive_state(self) -> str:
+        """Get adaptive state."""
+
+        # Get the top event
+        top = self.events.top()
+        result = STATE_NONE
+        if top:
+            result = top["event"]
+        _LOGGER.debug("Adaptive state = %s", result)
+        return result
+
+    async def async_get_features(self) -> str:
+        """Get features."""
+
+        return str(self.installed_components)
+
+    def _filter_sensor(self, sensor: str, new_value: float) -> float:
+        """Filter a given sensor, ensuring smooth initialization and spike reduction."""
+
+        # Ensure the sensor type is valid
+        if sensor not in self._filtered_sensors:
+            raise ValueError(f"Invalid sensor: {sensor}")
+
+        sensor_data = self._filtered_sensors[sensor]
+        history: deque[float] = sensor_data["history"]
+
+        # Collect initial samples and compute average until initialized
+        if not sensor_data["initialized"]:
+            if history.maxlen is not None and len(history) < history.maxlen:
+                history.append(new_value)
+                return float(round(sum(history) / len(history), 1))
+            sensor_data["initialized"] = True
+
+        # Compute rolling average
+        rolling_average = sum(history) / len(history)
+
+        # If new value is a spike, return rolling average (reject spike)
+        if abs(new_value - rolling_average) > sensor_data["max_change"]:
+            return float(round(rolling_average, 1))
+
+        # Otherwise, accept new value and update history
+        history.append(new_value)
+        return new_value
