@@ -17,7 +17,7 @@ Home Assistant integration for Pluggit ventilation units
 
 This custom integration requires:
 
-- Home Assistant version **2025.8.0** or newer
+- Home Assistant version **2026.9.0** or newer (shared Modbus connection via the `modbus` integration / `modbus-connection`)
 
 Only support for Modbus over TCP/IP.
 
