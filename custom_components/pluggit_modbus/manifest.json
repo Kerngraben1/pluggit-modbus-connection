@@ -1,0 +1,22 @@
+{
+  "domain": "pluggit_modbus",
+  "name": "Pluggit",
+  "codeowners": [
+    "@Tvalley71"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "http",
+    "modbus",
+    "network"
+  ],
+  "documentation": "https://github.com/Tvalley71/pluggit",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/Tvalley71/pluggit/issues",
+  "loggers": [
+    "custom_components.pluggit_modbus"
+  ],
+  "requirements": [],
+  "version": "1.41b"
+}
