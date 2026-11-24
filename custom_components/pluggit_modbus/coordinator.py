@@ -1,4 +1,9 @@
 """Coordinator implementation."""
+# ============================================================================
+# Vibe Code Änderung (2026-11-24): Verbindungsabbruch wird NICHT mehr per
+# Config-Entry-Reload behandelt, sondern nur als UpdateFailed -> Entities
+# "unavailable", nächster Poll versöhnt (Empfehlung HA-Modbus-Doku).
+# ============================================================================
 
 from __future__ import annotations
 
@@ -23,7 +28,6 @@ from .device_map import (
     ATTR_CALENDAR,
     BINARY_SENSORS,
     BUTTONS,
-    CONF_ENABLE_TIME_SYNCHRONIZATION,
     COVERS,
     FANS,
     NUMBERS,
@@ -300,7 +304,7 @@ class DanthermCoordinator(DataUpdateCoordinator, DanthermStore):
                     for entity in self._entities:
                         entity.async_write_ha_state()
                     self._attr_available = False
-                raise UpdateFailed("Problem reading from modbus device")
+                raise UpdateFailed("Problem reading from modbus device")  # Vibe Code: Verbindungsfehler -> UpdateFailed (kein Reload mehr)
 
             self._attr_available = True
 
