@@ -18,5 +18,5 @@
     "custom_components.pluggit_modbus"
   ],
   "requirements": [],
-  "version": "1.41b"
+  "version": "1.41b0"
 }
