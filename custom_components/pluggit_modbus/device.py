@@ -1,4 +1,10 @@
 """Device implementation."""
+# ============================================================================
+# Vibe Code Änderungen (2026-11-24):
+#   - Signatur __init__(hass, name, unit, scan_interval, config_entry):
+#     "unit" ist die ModbusUnit der HA-Modbus-Integration; host/port/eigener
+#     pymodbus-Client und interne Client-Closes entfernt
+# ============================================================================
 
 from __future__ import annotations
 
@@ -146,7 +152,7 @@ class DanthermDevice(DanthermModbus, DanthermAdaptiveManager):
         self,
         hass: HomeAssistant,
         name: str,
-        unit: ModbusUnit,
+        unit: ModbusUnit,  # Vibe Code: ModbusUnit statt host/port/eigenem Client
         scan_interval: int,
         config_entry: ConfigEntry | None,
     ) -> None:

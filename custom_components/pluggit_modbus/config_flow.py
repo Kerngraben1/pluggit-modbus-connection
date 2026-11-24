@@ -1,4 +1,10 @@
 """Config Flow implementation."""
+# ============================================================================
+# Vibe Code Änderungen (2026-11-24):
+#   - Validierung im Config Flow über async_get_temporary_unit (geteilte
+#     ModbusUnit) statt eigenem Probe-Connect (connect_and_verify)
+#   - Domain "pluggit" -> "pluggit_modbus" (siehe const.py)
+# ============================================================================
 
 from __future__ import annotations
 
@@ -11,12 +17,12 @@ from typing import Any
 
 import voluptuous as vol
 
-from modbus_connection import ModbusTcpParams
+from modbus_connection import ModbusTcpParams  # Vibe Code: Parameter-Objekt der HA-Modbus-Architektur
 
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
-from homeassistant.components.modbus import async_get_temporary_unit
+from homeassistant.components.modbus import async_get_temporary_unit  # Vibe Code: temporäre Unit statt eigenem pymodbus-Client
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
@@ -242,7 +248,7 @@ class DanthermConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 # A temporary unit shares the entry-held connection when one exists
                 # and closes the connection itself otherwise.
                 try:
-                    async with async_get_temporary_unit(
+                    async with async_get_temporary_unit(  # Vibe Code: Validierung über temporäre geteilte Unit (kein eigenes connect_and_verify mehr)
                         self.hass, ModbusTcpParams(host=host, port=port), 1
                     ) as temp_unit:
                         device = DanthermDevice(
