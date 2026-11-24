@@ -28,6 +28,7 @@ from .device_map import (
     ATTR_CALENDAR,
     BINARY_SENSORS,
     BUTTONS,
+    CONF_ENABLE_TIME_SYNCHRONIZATION,
     COVERS,
     FANS,
     NUMBERS,
