@@ -1,4 +1,12 @@
 """Modbus implementation."""
+# ============================================================================
+# Vibe Code Änderungen (2026-11-24) - Migration auf die HA-Modbus-Architektur:
+#   - eigener pymodbus-Client (Socket, ensure_connected/connect_and_verify/
+#     disconnect_and_close, Retry-Schleifen) entfernt
+#   - stattdessen gemeinsame ModbusUnit (modbus_connection) via async_get_unit
+#   - Datentyp-Konvertierung via modbus_connection.decode/encode
+#     (word_order="little", bit-identisch zum bisherigen pymodbus-Encoding)
+# ============================================================================
 
 from __future__ import annotations
 
@@ -8,7 +16,7 @@ import logging
 import re
 from typing import TYPE_CHECKING, Any
 
-from modbus_connection import ModbusError, ModbusUnit
+from modbus_connection import ModbusError, ModbusUnit  # Vibe Code: ersetzt pymodbus-Client/-Importe
 from modbus_connection.decode import (
     decode_float32,
     decode_int32,
@@ -19,7 +27,7 @@ from modbus_connection.encode import encode_float32, encode_uint32
 
 # All Dantherm/Pluggit registers are little-endian word order
 # (identical to the previous pymodbus `convert_from_registers(..., "little")`).
-WORD_ORDER = "little"
+WORD_ORDER = "little"  # Vibe Code: little-endian wie bisheriges pymodbus-Encoding (bit-identisch verifiziert)
 
 if TYPE_CHECKING:
     from .device_map import DanthermEntityDescription
@@ -107,7 +115,7 @@ class DanthermModbus:
         close) is managed by the framework, never here.
         """
         self._name = name
-        self._unit = unit
+        self._unit = unit  # Vibe Code: geteilte Verbindung (ModbusUnit) statt eigenem pymodbus-Socket
         self._attr_available = False
         self._read_errors = 0
         # coordinator will be set by subclass
@@ -269,7 +277,7 @@ class DanthermModbus:
     ) -> list[int] | None:
         """Read holding registers through the shared connection unit."""
         try:
-            registers = await self._unit.read_holding_registers(address, count)
+            registers = await self._unit.read_holding_registers(address, count)  # Vibe Code: Read über geteilte Unit (ersetzt pymodbus read_holding_registers + Retry)
         except ModbusError as err:
             _LOGGER.error("Read holding registers failed: %s", err)
             self._read_errors += 1
@@ -280,7 +288,7 @@ class DanthermModbus:
     async def __write_holding_registers(self, address: int, values: list[int]) -> None:
         """Write holding registers through the shared connection unit."""
         try:
-            await self._unit.write_registers(address, values)
+            await self._unit.write_registers(address, values)  # Vibe Code: Write über geteilte Unit (ersetzt pymodbus write_registers)
             _LOGGER.debug("Written %s to register address %d", values, address)
         except ModbusError as err:
             _LOGGER.warning("Write holding registers failed: %s", err)

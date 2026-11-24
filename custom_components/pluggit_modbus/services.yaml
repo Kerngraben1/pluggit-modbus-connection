@@ -1,3 +1,7 @@
+# ============================================================================
+# Vibe Code Änderung (2026-11-24): Domain "pluggit" -> "pluggit_modbus"
+# (alle service descriptions: integration: pluggit_modbus)
+# ============================================================================
 set_state:
   fields:
     device_id:
