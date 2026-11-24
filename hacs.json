@@ -1,8 +1,7 @@
 {
   "name": "Pluggit-Modbus",
-  "zip_release": true,
+  "zip_release": false,
   "hide_default_branch": false,
-  "filename": "pluggit.zip",
   "render_readme": true,
   "content_in_root": false
 }
